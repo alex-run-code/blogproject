@@ -18,7 +18,7 @@ class PostList(generics.ListCreateAPIView):
         'author__username': ['exact'],
         'publish': ['gte', 'lte'],
         'created': ['gte', 'lte'],
-        'category': ['exact'],
+        'category__name': ['exact'],
     }
 
 
@@ -37,4 +37,4 @@ class PostCategoryList(generics.ListCreateAPIView):
         # category = self.request.query_params.get('category')
         category = self.kwargs['category']
         print(category)
-        return Post.objects.filter(category__title=category)
+        return Post.objects.filter(category__name=category)
