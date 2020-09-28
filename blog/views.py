@@ -26,10 +26,15 @@ class PostDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
+class PostCategoryList(generics.ListCreateAPIView):
+    serializer_class = PostSerializer
 
-class PublishedAfterFilterBackend(filters.BaseFilterBackend):
-    """
-    Filter that only allows users to see their own objects.
-    """
-    def filter_queryset(self, request, queryset, view):
-        return queryset.filter(owner=request.user)
+    def get_queryset(self):
+        """
+        This view should return a list of all the purchases
+        for the currently authenticated user.
+        """
+        # category = self.request.query_params.get('category')
+        category = self.kwargs['category']
+        print(category)
+        return Post.objects.filter(category__title=category)
