@@ -5,6 +5,12 @@ import django_filters
 
 # Create your models here.
 
+class Category(models.Model):
+    title = models.CharField(max_length=250)
+
+    def __str__(self):
+        return self.title
+
 
 class Post(models.Model):
     STATUS_CHOICES = (
@@ -19,6 +25,7 @@ class Post(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
 
     class Meta:
         ordering = ('-publish',)

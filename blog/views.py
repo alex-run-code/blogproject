@@ -7,7 +7,6 @@ from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 
 
-
 class PostList(generics.ListCreateAPIView):
     serializer_class = PostSerializer
     queryset = Post.objects.all()
@@ -19,6 +18,7 @@ class PostList(generics.ListCreateAPIView):
         'author__username': ['exact'],
         'publish': ['gte', 'lte'],
         'created': ['gte', 'lte'],
+        'category': ['exact'],
     }
 
 
