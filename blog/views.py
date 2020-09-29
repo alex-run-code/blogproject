@@ -34,7 +34,7 @@ class PostCollectionList(generics.ListCreateAPIView):
         for the currently authenticated user.
         """
         print(self.kwargs['collection'])
-        collection = Collection.objects.get(title=self.kwargs['collection'])
+        collection = Collection.objects.get(slug=self.kwargs['collection'])
         collection_tags = []
         for tag in collection.tags.all():
             collection_tags.append(tag)

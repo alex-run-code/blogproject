@@ -6,6 +6,7 @@ from taggit.managers import TaggableManager
 
 class Collection(models.Model):
     title = models.CharField(max_length=250)
+    slug = models.SlugField(max_length=250, unique=True)
     tags = TaggableManager()
 
     def __str__(self):
