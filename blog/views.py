@@ -34,9 +34,6 @@ class PostCollectionList(generics.ListCreateAPIView):
         for the currently authenticated user.
         """
         print(self.kwargs['collection'])
-        collection = Collection.objects.get(slug=self.kwargs['collection'])
-        collection_tags = []
-        for tag in collection.tags.all():
-            collection_tags.append(tag)
+        collection_tags = Collection.objects.values_list('tags__name', flat=True)
         return Post.objects.filter(tags__name__in=collection_tags).distinct()
 
