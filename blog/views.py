@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import Post
-from blog.models import Post
+from blog.models import Post, Collection
 from blog.serializers import PostSerializer
 from rest_framework import generics
 from rest_framework import filters
@@ -18,7 +18,6 @@ class PostList(generics.ListCreateAPIView):
         'author__username': ['exact'],
         'publish': ['gte', 'lte'],
         'created': ['gte', 'lte'],
-        'category__name': ['exact'],
     }
 
 
@@ -26,7 +25,7 @@ class PostDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
-class PostCategoryList(generics.ListCreateAPIView):
+class PostCollectionList(generics.ListCreateAPIView):
     serializer_class = PostSerializer
 
     def get_queryset(self):
@@ -34,7 +33,10 @@ class PostCategoryList(generics.ListCreateAPIView):
         This view should return a list of all the purchases
         for the currently authenticated user.
         """
-        # category = self.request.query_params.get('category')
-        category = self.kwargs['category']
-        print(category)
-        return Post.objects.filter(category__name=category)
+        print(self.kwargs['collection'])
+        collection = Collection.objects.get(title=self.kwargs['collection'])
+        collection_tags = []
+        for tag in collection.tags.all():
+            collection_tags.append(tag)
+        return Post.objects.filter(tags__name__in=collection_tags).distinct()
+

@@ -3,12 +3,14 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 import django_filters
 from taggit.managers import TaggableManager
-from taggit.models import TaggedItemBase
 
-# Create your models here.
+class Collection(models.Model):
+    title = models.CharField(max_length=250)
+    tags = TaggableManager()
 
-class TaggedPost(TaggedItemBase):
-    content_object = models.ForeignKey('Post', on_delete=models.CASCADE)
+    def __str__(self):
+        return self.title
+
 
 class Post(models.Model):
     STATUS_CHOICES = (
@@ -23,10 +25,11 @@ class Post(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
-    category = TaggableManager(through=TaggedPost)
+    tags = TaggableManager()
 
     class Meta:
         ordering = ('-publish',)
 
     def __str__(self):
         return self.title
+
