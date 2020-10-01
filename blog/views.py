@@ -8,6 +8,8 @@ from .forms import EmailPostForm
 from django.core.mail import send_mail
 from .models import Post, Comment
 from .forms import EmailPostForm, CommentForm
+from django.views.generic.edit import FormView
+
 
 
 class PostList(generics.ListCreateAPIView):
@@ -59,25 +61,57 @@ class PostCollectionList(generics.ListCreateAPIView):
         return Post.objects.filter(tags__name__in=collection_tags).distinct()
 
 
-def post_share(request, post_id):
-    # Retrieve post by id
-    post = get_object_or_404(Post, id=post_id, status='published')
-    print(post)
-    sent = False
+# def post_share(request, post_id):
+#     # Retrieve post by id
+#     post = get_object_or_404(Post, id=post_id, status='published')
+#     print(post)
+#     sent = False
+#
+    # if request.method == 'POST':
+    #     # Form was submitted
+    #     form = EmailPostForm(request.POST)
+    #     if form.is_valid():
+    #         # Form fields passed validation
+    #         cd = form.cleaned_data
+    #         subject = '{} ({}) recommends you reading "{}"'.format(cd['name'], cd['email'], post.title)
+    #         message = 'Read "{}" \n\n{}\'s comments: {}'.format(post.title, cd['name'], cd['comments'])
+    #         send_mail(subject, message, 'admin@myblog.com', [cd['to']])
+    #         sent = True
+    #     else:
+    #         form = EmailPostForm()
+    #     return render(request, 'blog/share.html', {'post': post, 'form': form, 'sent': sent})
+    # else:
+    #     form = EmailPostForm()
+    # return render(request, 'blog/share.html', {'post': post, 'form': form})
 
-    if request.method == 'POST':
-        # Form was submitted
-        form = EmailPostForm(request.POST)
-        if form.is_valid():
-            # Form fields passed validation
-            cd = form.cleaned_data
-            subject = '{} ({}) recommends you reading "{}"'.format(cd['name'], cd['email'], post.title)
-            message = 'Read "{}" \n\n{}\'s comments: {}'.format(post.title, cd['name'], cd['comments'])
-            send_mail(subject, message, 'admin@myblog.com', [cd['to']])
-            sent = True
-        else:
-            form = EmailPostForm()
-        return render(request, 'blog/share.html', {'post': post, 'form': form, 'sent': sent})
-    else:
-        form = EmailPostForm()
-    return render(request, 'blog/share.html', {'post': post, 'form': form})
+
+class PostShare(FormView):
+    template_name = 'blog/share.html'
+    form_class = EmailPostForm
+    success_url = '.'
+
+    def get(self, request, *args, **kwargs):
+        sent = False
+        form = self.form_class(initial=self.initial)
+        post_id = self.kwargs['post_id']
+        post = get_object_or_404(Post, id=post_id, status='published')
+        return render(request, self.template_name, {'form': form, 'post': post, 'sent': sent})
+
+    def form_valid(self, form):
+        # This method is called when valid form data has been POSTed.
+        # It should return an HttpResponse.
+        form = self.form_class(initial=self.initial)
+        cd = self.request.POST
+        name = cd['name']
+        email = cd['email']
+        post_id = self.kwargs['post_id']
+        post = get_object_or_404(Post, id=post_id, status='published')
+        comments = cd['comments']
+        to = cd['to']
+        form.send_email(name, email, post, comments, to)
+        return super().form_valid(form)
+
+
+
+
+
