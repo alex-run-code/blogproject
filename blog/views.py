@@ -10,6 +10,7 @@ from .models import Post, Comment
 from .forms import EmailPostForm, CommentForm
 from django.views.generic.edit import FormView
 from django.contrib import messages
+from django.db.models import Count
 
 
 
@@ -31,13 +32,13 @@ class PostDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
-def post_detail(request, year, month, day, post):
-    post = get_object_or_404(Post, slug=post,
-                             status='published',
-                             publish__year=year,
-                             publish__month=month,
-                             publish__day=day)
+def post_detail(request, slug):
+    post = get_object_or_404(Post, slug=slug)
+    tags = post.tags.all()
     comments = post.comments.filter(active=True)
+    post_tags_ids = post.tags.values_list('id', flat=True)
+    similar_posts = Post.objects.filter(tags__in=post_tags_ids).exclude(id=post.id)
+    similar_posts = similar_posts.annotate(same_tags=Count('tags')).order_by('-same_tags', '-publish')[:4]
     if request.method == 'POST':
         comment_form = CommentForm(data=request.POST)
         if comment_form.is_valid():
@@ -46,7 +47,14 @@ def post_detail(request, year, month, day, post):
             new_comment.save()
     else:
         comment_form = CommentForm()
-    return render(request, 'blog/detail.html', {'post': post, 'comments': comments, 'comment_form': comment_form})
+    context = {
+        'post': post,
+        'comments': comments,
+        'comment_form': comment_form,
+        'tags': tags,
+        'similar_posts': similar_posts,
+    }
+    return render(request, 'blog/detail.html', context)
 
 
 class PostCollectionList(generics.ListCreateAPIView):
@@ -88,8 +96,6 @@ class PostShare(FormView):
         form.send_email(name, email, post, comments, to)
         messages.add_message(self.request, messages.INFO, 'Message sent to {} Bravo !'.format(to))
         return super().form_valid(form)
-
-
 
 
 

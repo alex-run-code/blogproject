@@ -1,6 +1,8 @@
 <html>
-{% block title %}{{ post.title }}{% endblock %}
+
 {% block content %}
+    Tags :
+    {{ tags|join:", " }}
  <h1>{{ post.title }}</h1>
  <p class="date">
  Published {{ post.publish }} by {{ post.author }}
@@ -36,6 +38,16 @@
  <p><input type="submit" value="Add comment"></p>
  </form>
 {% endif %}
+
+<h2>Similar posts</h2>
+{% for post in similar_posts %}
+ <p>
+{{ post.title }}
+ {{  post.same_tags }}
+ </p>
+{% empty %}
+ There are no similar posts yet.
+{% endfor %}
 
 
 </html>
