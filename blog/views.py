@@ -9,6 +9,7 @@ from django.core.mail import send_mail
 from .models import Post, Comment
 from .forms import EmailPostForm, CommentForm
 from django.views.generic.edit import FormView
+from django.contrib import messages
 
 
 
@@ -61,30 +62,6 @@ class PostCollectionList(generics.ListCreateAPIView):
         return Post.objects.filter(tags__name__in=collection_tags).distinct()
 
 
-# def post_share(request, post_id):
-#     # Retrieve post by id
-#     post = get_object_or_404(Post, id=post_id, status='published')
-#     print(post)
-#     sent = False
-#
-    # if request.method == 'POST':
-    #     # Form was submitted
-    #     form = EmailPostForm(request.POST)
-    #     if form.is_valid():
-    #         # Form fields passed validation
-    #         cd = form.cleaned_data
-    #         subject = '{} ({}) recommends you reading "{}"'.format(cd['name'], cd['email'], post.title)
-    #         message = 'Read "{}" \n\n{}\'s comments: {}'.format(post.title, cd['name'], cd['comments'])
-    #         send_mail(subject, message, 'admin@myblog.com', [cd['to']])
-    #         sent = True
-    #     else:
-    #         form = EmailPostForm()
-    #     return render(request, 'blog/share.html', {'post': post, 'form': form, 'sent': sent})
-    # else:
-    #     form = EmailPostForm()
-    # return render(request, 'blog/share.html', {'post': post, 'form': form})
-
-
 class PostShare(FormView):
     template_name = 'blog/share.html'
     form_class = EmailPostForm
@@ -109,6 +86,7 @@ class PostShare(FormView):
         comments = cd['comments']
         to = cd['to']
         form.send_email(name, email, post, comments, to)
+        messages.add_message(self.request, messages.INFO, 'Message sent to {} Bravo !'.format(to))
         return super().form_valid(form)
 
 
